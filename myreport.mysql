@@ -1,0 +1,18 @@
+/*
+Enter your query here.
+*/
+select
+  case
+    when g.grade < 8 then null
+    else s.name
+  end,
+  g.grade,
+  s.marks
+from students as s
+join grades as g
+on s.marks >= g.min_mark and s.marks <= g.max_mark
+order by g.grade desc, s.name,s.marks
+
+/*
+My initial thought was to get the floor ( marks/10)+1, however, the inner join helps solve the problem, then g.grade desc, s.name asc, s,marks asc
+*/

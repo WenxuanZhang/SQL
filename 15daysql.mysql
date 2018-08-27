@@ -1,0 +1,53 @@
+
+SELECT t2.submission_date, t2.hacker_cnt, h.hacker_id, h.name
+  FROM (
+        SELECT submission_date, COUNT(DISTINCT hacker_id) AS hacker_cnt
+          FROM (
+                SELECT s1.submission_date, s1.hacker_id, COUNT(DISTINCT s2.submission_date) AS day_cnt
+                  FROM Submissions s1
+                  JOIN Submissions s2
+                    ON s2.hacker_id = s1.hacker_id
+                   AND s2.submission_date <= s1.submission_date
+                GROUP BY s1.submission_date, s1.hacker_id
+               ) t4
+         WHERE DATEDIFF(submission_date, '2016-03-01') + 1 = day_cnt
+        GROUP BY submission_date
+       ) t2
+  JOIN (
+        SELECT submission_date, hacker_id
+          FROM (
+                SELECT submission_date, hacker_id, COUNT(*) AS cnt
+                  FROM Submissions
+                GROUP BY submission_date, hacker_id
+               ) t
+         WHERE NOT EXISTS (
+                SELECT 1
+                  FROM (
+                        SELECT submission_date, hacker_id, COUNT(*) AS cnt
+                          FROM Submissions
+                        GROUP BY submission_date, hacker_id
+                       ) t1
+                 WHERE t1.submission_date = t.submission_date
+                   AND t1.hacker_id <> t.hacker_id
+                   AND (t1.cnt > t.cnt OR (t1.cnt = t.cnt AND t1.hacker_id < t.hacker_id))
+               )
+       ) t3
+    ON t3.submission_date = t2.submission_date
+  JOIN Hackers h
+    ON h.hacker_id = t3.hacker_id
+ORDER BY t2.submission_date;
+
+/*Solution 2*/
+
+SELECT SUBMISSION_DATE,
+(SELECT COUNT(DISTINCT HACKER_ID)  
+ FROM SUBMISSIONS S2  
+ WHERE S2.SUBMISSION_DATE = S1.SUBMISSION_DATE AND    
+(SELECT COUNT(DISTINCT S3.SUBMISSION_DATE) 
+ FROM SUBMISSIONS S3 WHERE S3.HACKER_ID = S2.HACKER_ID AND S3.SUBMISSION_DATE < S1.SUBMISSION_DATE) = DATEDIFF(S1.SUBMISSION_DATE , '2016-03-01')),
+(SELECT HACKER_ID FROM SUBMISSIONS S2 WHERE S2.SUBMISSION_DATE = S1.SUBMISSION_DATE 
+GROUP BY HACKER_ID ORDER BY COUNT(SUBMISSION_ID) DESC, HACKER_ID LIMIT 1) AS TMP,
+(SELECT NAME FROM HACKERS WHERE HACKER_ID = TMP)
+FROM
+(SELECT DISTINCT SUBMISSION_DATE FROM SUBMISSIONS) S1
+GROUP BY SUBMISSION_DATE;
