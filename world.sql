@@ -113,4 +113,22 @@ select distinct  country_or_area, yr from gdp;
 use mysql;
 select * from user where User="root";
 
+/*Follow up question 1*/
+CREATE TABLE gdp_g select g.*, p.population*g.gdp* 1000  as gross_gdp from gdp g left join population p on 
+g.country_or_area = p.country_or_area and
+g.yr = p.yr where p.scenario ='Medium';
+
+/*Follow up question 2*/
+select g1.* , format (g1.gdp/g2.gdp ,2)as pct from gdp_by_exp g1  left  join (select * from gdp_by_exp where exp_type = 'Gross Domestic Product (GDP)' ) g2 
+on  g1.country_or_area = g2.country_or_area
+and g1.yr = g2.yr
+;
+
+select distinct exp_type from gdp_by_exp;
+
+/*Follow up question 3* select he country  with */
+select country_or_area, yr, format (gdp,1)from gdp where yr = '2018' order by gdp desc limit 54,1;
+
+
+
 
